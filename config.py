@@ -1,35 +1,63 @@
-# LinkedIn Automation Configuration
+import os
+import platform
 
-# Path to Chrome profile
-CHROME_PROFILE_PATH = '/path/to/chrome/profile'
+class Config:
+    """Configuration for LinkedIn Sales Navigator Automation."""
 
-# Target Roles in English and French
-TARGET_ROLES = {
-    'en': ['Sales Director', 'Commercial Director', 'General Director', 'IT Director'],
-    'fr': ['Directeur des Ventes', 'Directeur Commercial', 'Directeur Général', 'Directeur IT']
-}
-
-# Browser Settings
-BROWSER_SETTINGS = {
-    'headless': False,
-    'window_size': '1920x1080',
-    'timeout': 30
-}
-
-# File Paths
-FILE_PATHS = {
-    'data_export': 'path/to/data_export.csv',
-    'error_log': 'path/to/error_log.txt'
-}
-
-# Logging Configuration
-LOGGING_CONFIG = {
-    'level': 'DEBUG',
-    'format': '%(asctime)s - %(levelname)s - %(message)s',
-    'handlers': ['console', 'file'],
-    'file_handler': {
-        'filename': 'path/to/logfile.log',
-        'maxBytes': 10485760,  # 10 MB
-        'backupCount': 5
+    # --- Chrome Profile Paths (per OS) ---
+    CHROME_PROFILE_PATHS = {
+        'Windows': os.path.join(
+            os.environ.get('LOCALAPPDATA', r'C:\Users\Default\AppData\Local'),
+            'Google', 'Chrome', 'User Data'
+        ),
+        'Darwin': os.path.expanduser(
+            '~/Library/Application Support/Google/Chrome'
+        ),
+        'Linux': os.path.expanduser('~/.config/google-chrome'),
     }
-}
+
+    # Profile directory inside the User Data folder (e.g. "Default", "Profile 1")
+    CHROME_PROFILE_DIR = 'Default'
+
+    # --- Target Roles ---
+    TARGET_ROLES = {
+        'en': [
+            'Sales Director',
+            'Commercial Director',
+            'General Director',
+            'IT Director',
+        ],
+        'fr': [
+            'Directeur des Ventes',
+            'Directeur Commercial',
+            'Directeur Général',
+            'Directeur IT',
+        ],
+    }
+
+    # --- Browser Settings ---
+    BROWSER_SETTINGS = {
+        'headless': False,
+        'window_width': 1920,
+        'window_height': 1080,
+        'page_load_timeout': 30,
+        'implicit_wait': 10,
+    }
+
+    # --- File Paths ---
+    FILE_PATHS = {
+        'input': 'input_companies.xlsx',
+        'output': 'output_results.xlsx',
+        'log': 'automation.log',
+    }
+
+    def __init__(self):
+        self.system = platform.system()
+        self.chrome_profile_path = self.CHROME_PROFILE_PATHS.get(
+            self.system, self.CHROME_PROFILE_PATHS['Linux']
+        )
+
+    @property
+    def all_target_roles(self):
+        """Return a flat list of all target role keywords."""
+        return self.TARGET_ROLES['en'] + self.TARGET_ROLES['fr']
