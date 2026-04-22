@@ -1,27 +1,42 @@
 import time
-import os
-import sys
+from urllib.parse import quote
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
 
-# Modify the ChromeOptions to use the existing profile
-options = Options()
-chrome_profile_path = "C:/Users/YourUsername/AppData/Local/Google/Chrome/User Data"
-options.add_argument(f"--user-data-dir={chrome_profile_path}")
-options.add_argument("--profile-directory=Profile 1")  # Change this to your specific profile if needed
 
-# Set up the Chrome driver
-service = Service(executable_path='path/to/chromedriver')  # Update the path to your chromedriver
-driver = webdriver.Chrome(service=service, options=options)
+class LinkedInNavigator:
+    def __init__(self, config):
+        self.config = config
+        self.driver = self._init_driver()
 
-try:
-    # Navigate to LinkedIn Sales Navigator
-    driver.get("https://www.linkedin.com/sales/" + "<your_search_query>")  # Replace <your_search_query> with the actual query if needed
+    def _init_driver(self):
+        options = Options()
+        options.add_argument(f"--user-data-dir={self.config.CHROME_PROFILE_PATH}")
+        options.add_argument(f"--profile-directory={self.config.CHROME_PROFILE_DIRECTORY}")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
 
-    # Implement further navigation logic here for searching companies
-    time.sleep(5)  # Wait for the page to load
-    # Add your logic for interacting with the page here
-finally:
-    time.sleep(10)
-    driver.quit()
+        driver = webdriver.Chrome(
+            service=Service(ChromeDriverManager().install()),
+            options=options,
+        )
+        driver.set_page_load_timeout(self.config.PAGE_LOAD_TIMEOUT)
+        driver.implicitly_wait(self.config.IMPLICIT_WAIT)
+        return driver
+
+    def search_and_extract(self, company_name):
+        """Navigate to LinkedIn Sales Navigator and extract contacts for a company."""
+        encoded_name = quote(company_name)
+        self.driver.get(
+            f"https://www.linkedin.com/sales/search/people?query=(filters:List((type:CURRENT_COMPANY,values:List((text:{encoded_name})))))"
+        )
+        time.sleep(self.config.EXTRACTION_DELAY)
+        # Placeholder: add XPath/CSS selector logic here to parse contact cards
+        contacts = []
+        return contacts
+
+    def close(self):
+        if self.driver:
+            self.driver.quit()
