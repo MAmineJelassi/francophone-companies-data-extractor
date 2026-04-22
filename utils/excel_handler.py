@@ -10,7 +10,19 @@ class ExcelHandler:
         Expects the file to have a 'Company Name' column.
         Returns a list of company name strings.
         """
-        df = pd.read_excel(file_path)
+        try:
+            df = pd.read_excel(file_path)
+        except FileNotFoundError:
+            raise FileNotFoundError(
+                f"Input file not found: '{file_path}'. "
+                "Please ensure 'input_companies.xlsx' exists in the root directory "
+                "with a 'Company Name' column."
+            )
+        except Exception as e:
+            raise ValueError(
+                f"Could not read Excel file '{file_path}': {e}. "
+                "The file should be a valid .xlsx file with a 'Company Name' column."
+            ) from e
         if 'Company Name' in df.columns:
             return df['Company Name'].dropna().tolist()
         # Fallback: use the first column if 'Company Name' is not found
@@ -23,8 +35,14 @@ class ExcelHandler:
             file_path: Path where the output Excel file will be saved.
             results: List of dicts containing contact data.
         """
-        df = pd.DataFrame(results)
-        df.to_excel(file_path, index=False)
+        try:
+            df = pd.DataFrame(results)
+            df.to_excel(file_path, index=False)
+        except Exception as e:
+            raise IOError(
+                f"Could not write results to '{file_path}': {e}. "
+                "Check that the path is writable and there is sufficient disk space."
+            ) from e
 
 
 # Standalone helper functions kept for backwards compatibility
