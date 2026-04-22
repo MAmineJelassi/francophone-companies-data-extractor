@@ -38,9 +38,9 @@ ENV/
 logs/
 *.log
 
-# Data files
-input_companies.xlsx
+# Data files - input_companies.xlsx is committed intentionally
 output_results.xlsx
+results_*.xlsx
 *.xlsx~
 
 # Selenium/WebDriver
